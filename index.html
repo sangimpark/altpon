@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>알뜰폰, 짧게 쓰고 최대 수익 얻기</title>
+<style>
+  /* ============================================================
+     기본 리셋 & 폰트
+     ============================================================ */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont,
+                 'Segoe UI', Roboto, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    background: #f5f6f8;
+    color: #1f2937;
+    line-height: 1.55;
+    padding: 16px;
+    max-width: 640px;
+    margin: 0 auto;
+    font-size: 15px;
+  }
+
+  /* ============================================================
+     공통 헤더
+     ============================================================ */
+  header { padding: 12px 4px 20px; }
+  h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .subtitle { color: #6b7280; font-size: 13px; margin-top: 4px; }
+
+  /* ============================================================
+     단계 전환 (Step 1 ↔ Step 2)
+     ============================================================ */
+  .step { display: none; }
+  .step.active { display: block; }
+
+  /* ============================================================
+     [Step 1] 통신사 랜딩 카드
+     ============================================================ */
+  .carrier-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 18px 16px;
+    margin-bottom: 14px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .carrier-card.ready {
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+  .carrier-card.ready:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .carrier-card.featured {
+    background: linear-gradient(180deg, #fffbeb 0%, #ffffff 60%);
+    border: 2px solid #f59e0b;
+  }
+  .carrier-card.coming {
+    background: #f9fafb;
+    opacity: 0.7;
+  }
+
+  .carrier-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .carrier-rank-badge {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+    margin-bottom: 10px;
+  }
+  .carrier-name {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .carrier-network {
+    font-size: 12px;
+    color: #6b7280;
+    padding: 2px 8px;
+    background: #f3f4f6;
+    border-radius: 4px;
+  }
+
+  .benefit-range {
+    margin: 14px 0 8px;
+    padding: 12px 14px;
+    background: #fef9c3;
+    border-radius: 8px;
+    text-align: center;
+  }
+  .benefit-range .label {
+    font-size: 12px;
+    color: #854d0e;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .benefit-range .value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #78350f;
+    letter-spacing: -0.02em;
+  }
+
+  .key-benefits {
+    margin: 12px 0;
+  }
+  .key-benefits .label {
+    font-size: 13px;
+    color: #4b5563;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  /* 칩 그리드 — 4개를 2열로 */
+  .chip-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .benefit-chip {
+    padding: 12px 10px;
+    background: #ffffff;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .benefit-chip .name {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .benefit-chip .amt {
+    font-size: 17px;
+    font-weight: 800;
+    color: #b45309;
+    letter-spacing: -0.02em;
+  }
+  /* 좁은 화면(360px 미만)에서 1열로 자동 정렬 */
+  @media (max-width: 360px) {
+    .chip-grid { grid-template-columns: 1fr; }
+  }
+
+  .go-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    text-align: center;
+    background: #1f2937;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .go-btn:hover { background: #111827; }
+
+  .coming-soon {
+    text-align: center;
+    padding: 8px 0;
+  }
+  .coming-soon .name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #6b7280;
+    margin-bottom: 6px;
+  }
+  .coming-soon .status {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 2px;
+  }
+  .coming-soon .eta {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+
+  /* ============================================================
+     [Step 2] 뒤로가기 + 입력 폼
+     ============================================================ */
+  .back-btn {
+    background: none;
+    border: none;
+    color: #4b5563;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 6px 0;
+    margin-bottom: 4px;
+    font-family: inherit;
+  }
+  .back-btn:hover { color: #1f2937; }
+
+  .form-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 18px 16px;
+    margin-bottom: 14px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .form-card h2 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: #374151;
+  }
+
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: #4b5563;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .field .input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .field input[type="number"] {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #ffffff;
+    color: #1f2937;
+  }
+  .field input[type="number"]:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  }
+  .field .unit {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+    min-width: 22px;
+    text-align: left;
+  }
+
+  .compare-btn {
+    width: 100%;
+    padding: 14px;
+    background: #1f2937;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .compare-btn:hover { background: #111827; }
+
+  /* ============================================================
+     [Step 2] 고급 옵션
+     ============================================================ */
+  .advanced-toggle {
+    width: 100%;
+    padding: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    margin-bottom: 14px;
+  }
+  .advanced-toggle:hover { background: #f3f4f6; }
+  .advanced-section {
+    display: none;
+    margin-bottom: 14px;
+    padding: 14px 14px 6px;
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+  }
+  .advanced-section.open { display: block; }
+  .advanced-section h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #4b5563;
+    margin-bottom: 8px;
+    margin-top: 4px;
+  }
+  .advanced-section h3:first-child { margin-top: 0; }
+  .option-list { list-style: none; margin-bottom: 14px; }
+  .option-list li { padding: 8px 0; font-size: 14px; color: #1f2937; }
+  .option-list label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .option-list input { margin-top: 3px; accent-color: #4f46e5; flex-shrink: 0; }
+  .option-list .opt-desc {
+    display: block;
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+
+  /* ============================================================
+     [Step 2] 결과 카드 영역
+     ============================================================ */
+  #results {
+    margin-top: 18px;
+  }
+  .results-header {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    color: #1f2937;
+    padding: 0 4px;
+  }
+  .results-header .count {
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 13px;
+    margin-left: 6px;
+  }
+
+  .plan-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #e5e7eb;
+  }
+  .plan-card.top {
+    background: linear-gradient(180deg, #fffbeb 0%, #ffffff 70%);
+    border: 2px solid #f59e0b;
+  }
+  .plan-rank {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #4b5563;
+    margin-bottom: 8px;
+  }
+  .plan-card.top .plan-rank { background: #fef3c7; color: #92400e; }
+  .plan-name { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
+  .plan-monthly {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+  .plan-optimal {
+    margin-top: 12px;
+    padding: 14px;
+    background: #fef9c3;
+    border-radius: 8px;
+    text-align: center;
+  }
+  .plan-card:not(.top) .plan-optimal { background: #f9fafb; }
+  .plan-optimal .recommend-line {
+    font-size: 13px;
+    color: #854d0e;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .plan-card:not(.top) .plan-optimal .recommend-line { color: #4b5563; }
+  .plan-optimal .value {
+    display: block;
+    font-size: 22px;
+    font-weight: 800;
+    color: #dc2626;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .plan-card.top .plan-optimal .value { color: #b45309; }
+  .plan-optimal .subtitle-line {
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 500;
+  }
+  .plan-periods {
+    margin-top: 10px;
+    border-top: 1px dashed #e5e7eb;
+    padding-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    font-size: 12px;
+  }
+  .plan-periods .col {
+    text-align: center;
+  }
+  .plan-periods .col .pn {
+    color: #9ca3af;
+    margin-bottom: 2px;
+  }
+  .plan-periods .col .pv {
+    font-weight: 700;
+    color: #374151;
+  }
+  .plan-periods .col .pv.loss { color: #9ca3af; font-weight: 500; }
+  .plan-option-line {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #6b7280;
+    padding: 8px 10px;
+    background: #eef2ff;
+    border-radius: 6px;
+  }
+
+  /* 매칭 0건 빈 상태 */
+  .empty-result {
+    margin-top: 18px;
+    padding: 32px 16px;
+    text-align: center;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px dashed #d1d5db;
+    color: #6b7280;
+    font-size: 14px;
+  }
+  .empty-result .icon { font-size: 28px; display: block; margin-bottom: 8px; }
+
+  /* ============================================================
+     반응형 보강
+     ============================================================ */
+  @media (min-width: 480px) {
+    body { font-size: 16px; padding: 24px; }
+    h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     [Step 1] 메인 랜딩 — 통신사 선택
+     ============================================================ -->
+<section id="step-1" class="step active">
+  <header>
+    <h1>알뜰폰 짠테크</h1>
+    <p class="subtitle">짧게 쓰고 갈아타며 수익 모으기</p>
+  </header>
+
+  <!-- 헬로모바일 (활성) -->
+  <article class="carrier-card featured ready" data-carrier="hello">
+    <span class="carrier-rank-badge">🥇 1순위</span>
+    <div class="carrier-head">
+      <span class="carrier-name">헬로모바일</span>
+      <span class="carrier-network">LG U+ 망</span>
+    </div>
+
+    <div class="benefit-range">
+      <div class="label">받을 수 있는 최대 혜택</div>
+      <div class="value">41만원 ~ 54만원</div>
+    </div>
+
+    <div class="key-benefits">
+      <div class="label">핵심 혜택</div>
+      <div class="chip-grid">
+        <div class="benefit-chip"><div class="name">친구추천</div><div class="amt">21만원</div></div>
+        <div class="benefit-chip"><div class="name">프로모션코드</div><div class="amt">14만원</div></div>
+        <div class="benefit-chip"><div class="name">쿠폰팩</div><div class="amt">12만원</div></div>
+        <div class="benefit-chip"><div class="name">기본 혜택</div><div class="amt">7만원</div></div>
+      </div>
+    </div>
+
+    <button class="go-btn" type="button">요금제 보러가기 →</button>
+  </article>
+
+  <!-- KT M모바일 (준비 중) -->
+  <article class="carrier-card coming">
+    <div class="coming-soon">
+      <div class="name">KT M모바일</div>
+      <div class="status">준비 중</div>
+      <div class="eta">곧 추가 예정</div>
+    </div>
+  </article>
+
+  <!-- 유플러스 유모바일 (준비 중) -->
+  <article class="carrier-card coming">
+    <div class="coming-soon">
+      <div class="name">유플러스 유모바일</div>
+      <div class="status">준비 중</div>
+      <div class="eta">곧 추가 예정</div>
+    </div>
+  </article>
+</section>
+
+
+<!-- ============================================================
+     [Step 2] 헬로모바일 요금제 — 입력 + 결과
+     ============================================================ -->
+<section id="step-2" class="step">
+  <button class="back-btn" id="back-to-step1" type="button">← 통신사 선택으로</button>
+
+  <header>
+    <h1>헬로모바일 요금제</h1>
+    <p class="subtitle">사용량 입력 후 비교하기를 눌러주세요</p>
+  </header>
+
+  <!-- 입력 폼 -->
+  <form id="compare-form" class="form-card" autocomplete="off">
+    <h2>내 사용량 입력</h2>
+
+    <div class="field">
+      <label for="data">데이터 사용량</label>
+      <div class="input-row">
+        <input type="number" id="data" name="data" value="7" min="0" step="0.5">
+        <span class="unit">GB</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="call">통화 사용량</label>
+      <div class="input-row">
+        <input type="number" id="call" name="call" value="100" min="0" step="10">
+        <span class="unit">분</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="sms">문자 사용량</label>
+      <div class="input-row">
+        <input type="number" id="sms" name="sms" value="100" min="0" step="10">
+        <span class="unit">건</span>
+      </div>
+    </div>
+
+    <button type="submit" class="compare-btn" id="compare-btn" style="margin-top: 14px;">비교하기</button>
+  </form>
+
+  <!-- 옵션 혜택 (항상 펼친 상태) -->
+  <section class="advanced-section open" id="advanced-section">
+    <h3>옵션 혜택 적용</h3>
+    <ul class="option-list">
+      <li>
+        <label>
+          <input type="checkbox" name="opt" value="s26">
+          <span>갤럭시 S26 구매 예정 <span class="opt-desc">해당 시 +3만원</span></span>
+        </label>
+      </li>
+      <li>
+        <label>
+          <input type="checkbox" name="opt" value="esim">
+          <span>eSIM 가입 예정 <span class="opt-desc">현재 계산엔 미반영</span></span>
+        </label>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 결과 영역 (비교하기 누르면 채워짐) -->
+  <div id="results"></div>
+</section>
+
+
+<!--
+  계산 로직 + 데이터: hello-test.js에서 plans, benefits, 함수들 전역 노출.
+-->
+<script src="hello-test.js"></script>
+
+<script>
+  // ============================================================
+  // 단계 전환
+  // ============================================================
+  const step1 = document.getElementById('step-1');
+  const step2 = document.getElementById('step-2');
+
+  function goStep(n) {
+    step1.classList.toggle('active', n === 1);
+    step2.classList.toggle('active', n === 2);
+    window.scrollTo(0, 0);
+  }
+
+  document.querySelector('.carrier-card.ready').addEventListener('click', () => goStep(2));
+  document.getElementById('back-to-step1').addEventListener('click', () => goStep(1));
+
+  // (옵션 혜택 영역은 항상 펼친 상태로 표시 — 토글 제거됨)
+
+  // ============================================================
+  // 결과 렌더링
+  // ============================================================
+  const fmt = (n) => (n >= 0 ? '+' : '') + n.toLocaleString('ko-KR');
+
+  function renderResults(input) {
+    const includeS26 = input.options.includes('s26');
+    const step2Subtitle = document.querySelector('#step-2 .subtitle');
+    const resultsEl = document.getElementById('results');
+
+    // 1) 입력 데이터 사용량으로 plans 필터링 — 데이터가 모자라면 후보에서 제외
+    const filtered = plans.filter(p => p.데이터 >= input.data);
+    console.log(`[필터링] ${input.data}GB 이상: ${filtered.length}개 매칭`,
+                filtered.map(p => p.요금제명));
+
+    // 2) 매칭 0건이면 부제 + 빈 상태 출력 후 종료
+    if (filtered.length === 0) {
+      step2Subtitle.textContent = '매칭되는 요금제가 없습니다';
+      resultsEl.innerHTML = `
+        <div class="empty-result">
+          <span class="icon">📭</span>
+          매칭되는 요금제가 없습니다<br>
+          <span style="font-size: 12px; color: #9ca3af;">데이터 ${input.data}GB 이상을 제공하는 요금제가 없어요</span>
+        </div>`;
+      return;
+    }
+
+    // 3) Step 2 부제 동적 갱신
+    step2Subtitle.textContent = `데이터 ${input.data}GB 기준 ${filtered.length}개 요금제 비교`;
+
+    // 4) 효율 정점 월환산 기준으로 정렬
+    const sorted = [...filtered].sort((a, b) =>
+      findOptimalMonths(b).monthlyProfit - findOptimalMonths(a).monthlyProfit);
+
+    const html = [];
+    html.push(`<div class="results-header">추천 결과<span class="count">· ${sorted.length}개 · 효율 정점 기준</span></div>`);
+
+    sorted.forEach((plan, i) => {
+      const r = getPlanResult(plan);
+      // S26 옵션 적용 시 모든 시점에 +30,000 합산 (미리 본 값에 표시용)
+      const s26Boost = includeS26 && (plan.옵션혜택 || []).includes('hello-갤럭시s26') ? 30000 : 0;
+
+      const p6  = r.periods[6].실질이익  + s26Boost;
+      const p7  = r.periods[7].실질이익  + s26Boost;
+      const p12 = r.periods[12].실질이익 + s26Boost;
+      const p24 = r.periods[24].실질이익 + s26Boost;
+      const opt = r.optimal;
+      const optProfit = opt.totalProfit + s26Boost;
+
+      // 표시용 핵심 이익 = 효율 정점 시점의 실질이익
+      // 개발자 용어("정점") 대신 사용자 친화 표현으로 변경
+      const displayValue = optProfit;
+      const recommendLine = `💡 ${opt.optimalN}개월 사용 추천`;
+      const subtitleLine = `${opt.optimalN}개월 후엔 다른 통신사로 갈아타기`;
+
+      const optionLine = formatOptionLine(plan);
+
+      html.push(`
+        <article class="plan-card ${i === 0 ? 'top' : ''}">
+          <span class="plan-rank">${i + 1}위</span>
+          <div class="plan-name">${plan.요금제명}</div>
+          <div class="plan-monthly">월 ${plan.월요금.toLocaleString()}원 · ${plan.카테고리.length ? plan.카테고리.join(', ') : '일반'}</div>
+
+          <div class="plan-optimal">
+            <div class="recommend-line">${recommendLine}</div>
+            <span class="value">${fmt(displayValue)}원</span>
+            <div class="subtitle-line">${subtitleLine}</div>
+          </div>
+
+          <div class="plan-periods">
+            <div class="col"><div class="pn">6개월</div><div class="pv ${p6<0?'loss':''}">${fmt(p6)}</div></div>
+            <div class="col"><div class="pn">7개월</div><div class="pv ${p7<0?'loss':''}">${fmt(p7)}</div></div>
+            <div class="col"><div class="pn">12개월</div><div class="pv ${p12<0?'loss':''}">${fmt(p12)}</div></div>
+            <div class="col"><div class="pn">24개월</div><div class="pv ${p24<0?'loss':''}">${fmt(p24)}</div></div>
+          </div>
+
+          ${optionLine && !includeS26 ? `<div class="plan-option-line">💡 ${optionLine.trim()}</div>` : ''}
+          ${optionLine && includeS26 ? `<div class="plan-option-line">✅ 갤럭시 S26 옵션 +30,000원 반영됨</div>` : ''}
+        </article>
+      `);
+    });
+
+    document.getElementById('results').innerHTML = html.join('');
+  }
+
+  // ============================================================
+  // 비교하기 제출
+  // ============================================================
+  const compareForm = document.getElementById('compare-form');
+  compareForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = {
+      data: parseFloat(document.getElementById('data').value) || 0,
+      call: parseInt(document.getElementById('call').value, 10) || 0,
+      sms: parseInt(document.getElementById('sms').value, 10) || 0,
+      options: Array.from(document.querySelectorAll('input[name="opt"]:checked')).map(el => el.value)
+    };
+    console.log('[비교하기 입력]', input);
+    renderResults(input);
+  });
+</script>
+
+</body>
+</html>
