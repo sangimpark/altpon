@@ -725,121 +725,52 @@
       <div class="hero-lead">지금 알뜰폰 갈아타면 받는 돈</div>
       <div class="hero-number">
         <span class="prefix">최대</span>
-        <span class="big">47</span>
+        <span class="big" id="hero-max">--</span>
         <span class="unit">만원</span>
       </div>
-      <div class="hero-meta">(2026.6.5 기준)</div>
+      <div class="hero-meta">통신사별 공통 혜택 기준 · 2026.6</div>
     </div>
   </header>
 
-  <!-- 헬로모바일 (활성) -->
-  <article class="carrier-card featured ready" data-carrier="hello">
-    <span class="carrier-rank-badge">🥇 1순위</span>
-    <div class="carrier-head">
-      <span class="carrier-name">헬로모바일</span>
-      <span class="carrier-network">LG U+ 망</span>
-    </div>
+  <!-- 통신사 카드: JS가 getCarriers()로 자동 생성 (헬로/KT M/유플) -->
+  <div id="carrier-list"></div>
 
-    <div class="key-benefits">
-      <div class="label">혜택 내역</div>
-      <div class="chip-grid">
-        <div class="benefit-chip"><div class="name">친구추천</div><div class="amt">21만원</div></div>
-        <div class="benefit-chip"><div class="name">프로모션코드</div><div class="amt">14만원</div></div>
-        <div class="benefit-chip"><div class="name">쿠폰팩</div><div class="amt">12만원</div></div>
-      </div>
-      <div class="key-benefits-total">
-        <span class="total-label">합계 최대</span>
-        <span class="total-amt">47만원</span>
-      </div>
-    </div>
-
+  <!-- 카드 펼침 내용 템플릿 — JS가 통신사마다 복제해서 넣음 -->
+  <template id="carrier-form-tpl">
     <div class="carrier-expanded">
       <header style="padding: 8px 0 16px;">
-        <p class="subtitle">사용량 입력 후 비교하기를 눌러주세요</p>
+        <p class="subtitle">사용량 입력 후 버튼을 눌러주세요</p>
       </header>
-
-      <form id="compare-form" class="form-card" autocomplete="off">
+      <form class="form-card carrier-form" autocomplete="off">
         <h2>내 사용량 입력</h2>
-
         <div class="field">
-          <label for="data">데이터 사용량</label>
+          <label>데이터 사용량</label>
           <div class="input-row">
-            <input type="number" id="data" name="data" value="7" min="0" step="0.5">
+            <input type="number" class="in-data" value="7" min="0" step="0.5">
             <span class="unit">GB</span>
           </div>
         </div>
-
         <div class="field">
-          <label for="call">통화 사용량</label>
+          <label>통화 사용량</label>
           <div class="input-row">
-            <input type="number" id="call" name="call" value="100" min="0" step="10">
+            <input type="number" class="in-call" value="100" min="0" step="10">
             <span class="unit">분</span>
           </div>
         </div>
-
         <div class="field">
-          <label for="sms">문자 사용량</label>
+          <label>문자 사용량</label>
           <div class="input-row">
-            <input type="number" id="sms" name="sms" value="100" min="0" step="10">
+            <input type="number" class="in-sms" value="100" min="0" step="10">
             <span class="unit">건</span>
           </div>
         </div>
-
-        <button type="submit" class="compare-btn" id="compare-btn" style="margin-top: 14px;">비교하기</button>
+        <button type="submit" class="compare-btn" style="margin-top:14px;">이 통신사 요금제 보기</button>
       </form>
-
-      <section class="advanced-section open" id="advanced-section">
-        <h3>옵션 혜택 적용</h3>
-        <ul class="option-list">
-          <li>
-            <label>
-              <input type="checkbox" name="opt" value="s26">
-              <span>갤럭시 S26 구매 예정 <span class="opt-desc">해당 시 +3만원</span></span>
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" name="opt" value="esim">
-              <span>eSIM 가입 예정 <span class="opt-desc">현재 계산엔 미반영</span></span>
-            </label>
-          </li>
-        </ul>
-      </section>
-
-      <div id="results"></div>
+      <div class="results"></div>
     </div>
-
-    <a href="https://direct.lghellovision.net/event/viewEventDetail.do?returnTab=allli&idxOfEvent=586&page=1&newPage=Y"
-       class="secondary-btn"
-       target="_blank"
-       rel="noopener"
-       onclick="event.stopPropagation();">
-      프로모션 상세 보기
-    </a>
-    <button class="go-btn" type="button">
-      <span class="go-btn-text-closed">요금제 보러가기 →</span>
-      <span class="go-btn-text-open">접기 ↑</span>
-    </button>
-  </article>
-
-  <!-- KT M모바일 (준비 중) -->
-  <article class="carrier-card coming">
-    <div class="coming-soon">
-      <div class="name">KT M모바일</div>
-      <div class="status">준비 중</div>
-      <div class="eta">곧 추가 예정</div>
-    </div>
-  </article>
-
-  <!-- 유플러스 유모바일 (준비 중) -->
-  <article class="carrier-card coming">
-    <div class="coming-soon">
-      <div class="name">유플러스 유모바일</div>
-      <div class="status">준비 중</div>
-      <div class="eta">곧 추가 예정</div>
-    </div>
-  </article>
+  </template>
 </section>
+
 
 
 <!--
@@ -849,150 +780,166 @@
 
 <script>
   // ============================================================
-  // 단계 전환
+  //  통신사 카드 자동 생성 + 통신사별 요금제 필터
+  //  데이터/계산: hello-test.js (benefits, plans, getCarriers,
+  //  getPlanResult, findOptimalMonths, calculateRealProfit)
   // ============================================================
-  const helloCard = document.querySelector('.carrier-card.ready');
-  const goBtn = helloCard.querySelector('.go-btn');
 
-  function toggleCard(e) {
-    // 폼/input/체크박스 클릭 시 토글 막기
-    if (e && e.target.closest('.carrier-expanded')) return;
-    helloCard.classList.toggle('open');
-    if (helloCard.classList.contains('open')) {
-      // 펼쳐질 때 스크롤
-      setTimeout(() => helloCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-    }
-  }
-
-  helloCard.addEventListener('click', toggleCard);
-
-  // (옵션 혜택 영역은 항상 펼친 상태로 표시 — 토글 제거됨)
-
-  // ============================================================
-  // 결과 렌더링
-  // ============================================================
   const fmt = (n) => (n >= 0 ? '+' : '') + n.toLocaleString('ko-KR');
+  const man = (n) => Math.round(n / 10000); // 원 → 만원
 
+  // 요금제 스펙 한 줄
   function formatPlanSpec(plan) {
     let dataPart = `데이터 ${plan.데이터}GB`;
     if (plan.데이터플러스) {
       const speed = String(plan.데이터플러스).match(/[\d.]+Mbps/);
       if (speed) dataPart += ` (소진 후 ${speed[0]})`;
     }
-    const callPart = plan.통화 === "기본"
-      ? "통화 무제한"
-      : `통화 ${plan.통화}분`;
-    const smsPart = plan.문자 === "기본"
-      ? "문자 무제한"
-      : `문자 ${plan.문자}건`;
+    const callPart = plan.통화 === "기본" ? "통화 무제한" : `통화 ${plan.통화}분`;
+    const smsPart  = plan.문자 === "기본" ? "문자 무제한" : `문자 ${plan.문자}건`;
     return `${dataPart} · ${callPart} · ${smsPart}`;
   }
 
-  function renderResults(input) {
-    const includeS26 = input.options.includes('s26');
-    const resultsEl = document.getElementById('results');
+  // ---------- 메인: 통신사 카드 생성 ----------
+  const carriers = getCarriers(); // [{통신사, 후킹, 가입URL}]
+  const listEl = document.getElementById('carrier-list');
+  const tpl = document.getElementById('carrier-form-tpl');
 
-    // 1) 입력 데이터 사용량으로 plans 필터링 — 데이터가 모자라면 후보에서 제외
-    const filtered = plans.filter(p => p.데이터 >= input.data);
-    console.log(`[필터링] ${input.data}GB 이상: ${filtered.length}개 매칭`,
-                filtered.map(p => p.요금제명));
+  // 히어로 최대값 = 후킹 최댓값
+  const heroMax = Math.max(...carriers.map(c => c.후킹));
+  const heroEl = document.getElementById('hero-max');
+  if (heroEl) heroEl.textContent = man(heroMax);
 
-    // 2) 매칭 0건이면 빈 상태 출력 후 종료
+  // 후킹 높은 순으로 카드 배치
+  const ordered = [...carriers].sort((a, b) => b.후킹 - a.후킹);
+
+  ordered.forEach((c, idx) => {
+    const card = document.createElement('article');
+    card.className = 'carrier-card ready' + (idx === 0 ? ' featured' : '');
+    card.dataset.carrier = c.통신사;
+    card.dataset.url = c.가입URL;
+
+    const rank = idx === 0 ? '🥇 1순위' : (idx + 1) + '순위';
+    const net = c.통신사 === 'KT M모바일' ? 'KT 망' : 'LG U+ 망';
+
+    card.innerHTML =
+      '<span class="carrier-rank-badge">' + rank + '</span>' +
+      '<div class="carrier-head">' +
+        '<span class="carrier-name">' + c.통신사 + '</span>' +
+        '<span class="carrier-network">' + net + '</span>' +
+      '</div>' +
+      '<div class="benefit-range">' +
+        '<div class="value-line">공통 혜택 <span class="hl">최대 ' + man(c.후킹) + '만원</span></div>' +
+        '<div class="note">요금제 가입 시 누구나 받는 현금성 혜택 합계</div>' +
+      '</div>' +
+      '<button type="button" class="go-btn">' +
+        '<span class="go-btn-text-closed">요금제 보기 →</span>' +
+        '<span class="go-btn-text-open">접기 ↑</span>' +
+      '</button>';
+
+    // 펼침(폼+결과) 템플릿 복제해서 삽입
+    card.appendChild(tpl.content.cloneNode(true));
+    listEl.appendChild(card);
+
+    // --- 카드 헤더 클릭 → 펼침/접힘 ---
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.carrier-expanded')) return; // 폼 영역 클릭은 무시
+      card.classList.toggle('open');
+      if (card.classList.contains('open')) {
+        setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      }
+    });
+
+    // --- 폼 제출 → 이 통신사 요금제만 비교 ---
+    const form = card.querySelector('.carrier-form');
+    const resultsBox = card.querySelector('.results');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = {
+        data: parseFloat(form.querySelector('.in-data').value) || 0,
+        call: parseInt(form.querySelector('.in-call').value, 10) || 0,
+        sms:  parseInt(form.querySelector('.in-sms').value, 10) || 0
+      };
+      renderResults(input, c.통신사, resultsBox, c.가입URL);
+    });
+  });
+
+  // ============================================================
+  //  결과 렌더링 (해당 통신사 요금제만)
+  // ============================================================
+  function renderResults(input, 통신사, resultsEl, 가입URL) {
+    // 1) 이 통신사 + 데이터 충족 요금제만
+    const filtered = plans.filter(p => p.통신사 === 통신사 && p.데이터 >= input.data);
+
     if (filtered.length === 0) {
-      resultsEl.innerHTML = `
-        <div class="empty-result">
-          <span class="icon">📭</span>
-          매칭되는 요금제가 없습니다<br>
-          <span style="font-size: 12px; color: #9ca3af;">데이터 ${input.data}GB 이상을 제공하는 요금제가 없어요</span>
-        </div>`;
+      resultsEl.innerHTML =
+        '<div class="empty-result"><span class="icon">📭</span>' +
+        '매칭되는 요금제가 없습니다<br>' +
+        '<span style="font-size:12px;color:#9ca3af;">데이터 ' + input.data + 'GB 이상 요금제가 없어요</span></div>';
       return;
     }
 
-    // 3) 효율 정점 월환산 기준으로 정렬
+    // 2) 효율 정점 월환산 순 정렬
     const sorted = [...filtered].sort((a, b) =>
       findOptimalMonths(b).monthlyProfit - findOptimalMonths(a).monthlyProfit);
 
     const html = [];
-    html.push(`<div class="results-header">추천 결과<span class="count">· ${sorted.length}개 · 효율 정점 기준</span></div>`);
+    html.push('<div class="results-header">' + 통신사 + ' 추천<span class="count">· ' +
+              sorted.length + '개 · 효율 정점 기준</span></div>');
 
-    // 1위만 풀 카드
-    const topPlan = sorted[0];
-    const topResult = getPlanResult(topPlan);
-    const topS26Boost = includeS26 && (topPlan.옵션혜택 || []).includes('hello-갤럭시s26') ? 30000 : 0;
-    const tp6 = topResult.periods[6].실질이익 + topS26Boost;
-    const tp7 = topResult.periods[7].실질이익 + topS26Boost;
-    const tp12 = topResult.periods[12].실질이익 + topS26Boost;
-    const tp24 = topResult.periods[24].실질이익 + topS26Boost;
-    const topOpt = topResult.optimal;
-    const topOptProfit = topOpt.totalProfit + topS26Boost;
-    const topOptionLine = formatOptionLine(topPlan);
+    // 1위 풀 카드
+    const top = sorted[0];
+    const tr = getPlanResult(top);
+    const topOpt = tr.optimal;
+    html.push(
+      '<article class="plan-card top clickable" data-plan-name="' + top.요금제명 + '">' +
+        '<span class="plan-rank">1위</span>' +
+        '<div class="plan-name">' + top.요금제명 + '</div>' +
+        '<div class="plan-monthly">월 ' + top.월요금.toLocaleString() + '원 · ' +
+          (top.카테고리.length ? top.카테고리.join(', ') : '일반') + '</div>' +
+        '<div class="plan-spec">' + formatPlanSpec(top) + '</div>' +
+        '<div class="plan-optimal">' +
+          '<div class="recommend-line">💡 ' + topOpt.optimalN + '개월 사용 추천</div>' +
+          '<span class="value">' + fmt(topOpt.totalProfit) + '원</span>' +
+          '<div class="subtitle-line">' + topOpt.optimalN + '개월 후 다른 통신사로 갈아타기</div>' +
+        '</div>' +
+        '<div class="plan-periods">' +
+          ['6','7','12','24'].map(m => {
+            const v = tr.periods[m].실질이익;
+            return '<div class="col"><div class="pn">' + m + '개월</div>' +
+                   '<div class="pv ' + (v<0?'loss':'') + '">' + fmt(v) + '</div></div>';
+          }).join('') +
+        '</div>' +
+        (formatOptionLine(top) ? '<div class="plan-option-line">💡 ' + formatOptionLine(top).trim() + '</div>' : '') +
+        '<button type="button" class="plan-go-btn">가입하러 가기 →</button>' +
+      '</article>'
+    );
 
-    html.push(`
-      <article class="plan-card top clickable" id="result-top" data-plan-name="${topPlan.요금제명}">
-        <span class="plan-rank">1위</span>
-        <div class="plan-name">${topPlan.요금제명}</div>
-        <div class="plan-monthly">월 ${topPlan.월요금.toLocaleString()}원 · ${topPlan.카테고리.length ? topPlan.카테고리.join(', ') : '일반'}</div>
-        <div class="plan-spec">${formatPlanSpec(topPlan)}</div>
-
-        <div class="plan-optimal">
-          <div class="recommend-line">💡 ${topOpt.optimalN}개월 사용 추천</div>
-          <span class="value">${fmt(topOptProfit)}원</span>
-          <div class="subtitle-line">${topOpt.optimalN}개월 후엔 다른 통신사로 갈아타기</div>
-        </div>
-
-        <div class="plan-periods">
-          <div class="col"><div class="pn">6개월</div><div class="pv ${tp6<0?'loss':''}">${fmt(tp6)}</div></div>
-          <div class="col"><div class="pn">7개월</div><div class="pv ${tp7<0?'loss':''}">${fmt(tp7)}</div></div>
-          <div class="col"><div class="pn">12개월</div><div class="pv ${tp12<0?'loss':''}">${fmt(tp12)}</div></div>
-          <div class="col"><div class="pn">24개월</div><div class="pv ${tp24<0?'loss':''}">${fmt(tp24)}</div></div>
-        </div>
-
-        ${topOptionLine && !includeS26 ? `<div class="plan-option-line">💡 ${topOptionLine.trim()}</div>` : ''}
-        ${topOptionLine && includeS26 ? `<div class="plan-option-line">✅ 갤럭시 S26 옵션 +30,000원 반영됨</div>` : ''}
-
-        <button type="button" class="plan-go-btn">가입하러 가기 →</button>
-      </article>
-    `);
-
-    // 2위 이하 한 줄 압축
+    // 2위 이하 압축
     if (sorted.length > 1) {
-      html.push(`
-        <button type="button" class="more-results-toggle" id="more-toggle">
-          다른 요금제 비교 보기 (${sorted.length - 1}개)
-          <span class="arrow">▼</span>
-        </button>
-        <div class="more-results-list" id="more-list">
-      `);
-
+      html.push('<button type="button" class="more-results-toggle">다른 요금제 비교 보기 (' +
+                (sorted.length - 1) + '개)<span class="arrow">▼</span></button>' +
+                '<div class="more-results-list">');
       sorted.slice(1).forEach((plan, i) => {
         const r = getPlanResult(plan);
-        const s26Boost = includeS26 && (plan.옵션혜택 || []).includes('hello-갤럭시s26') ? 30000 : 0;
-        const profit = r.optimal.totalProfit + s26Boost;
-        const optN = r.optimal.optimalN;
-
-        html.push(`
-          <div class="plan-row clickable" data-plan-name="${plan.요금제명}">
-            <div class="rank">${i + 2}위</div>
-            <div class="info">
-              <div class="name">${plan.요금제명}</div>
-              <div class="meta">월 ${plan.월요금.toLocaleString()}원 · ${formatPlanSpec(plan)}</div>
-            </div>
-            <div class="profit">
-              ${fmt(profit)}원
-              <span class="period">${optN}개월 기준</span>
-            </div>
-          </div>
-        `);
+        html.push(
+          '<div class="plan-row clickable" data-plan-name="' + plan.요금제명 + '">' +
+            '<div class="rank">' + (i + 2) + '위</div>' +
+            '<div class="info"><div class="name">' + plan.요금제명 + '</div>' +
+            '<div class="meta">월 ' + plan.월요금.toLocaleString() + '원 · ' + formatPlanSpec(plan) + '</div></div>' +
+            '<div class="profit">' + fmt(r.optimal.totalProfit) + '원<span class="period">' +
+              r.optimal.optimalN + '개월 기준</span></div>' +
+          '</div>'
+        );
       });
-
-      html.push(`</div>`);
+      html.push('</div>');
     }
 
-    document.getElementById('results').innerHTML = html.join('');
+    resultsEl.innerHTML = html.join('');
 
-    // 토글 이벤트 바인딩
-    const moreToggle = document.getElementById('more-toggle');
-    const moreList = document.getElementById('more-list');
+    // 더보기 토글
+    const moreToggle = resultsEl.querySelector('.more-results-toggle');
+    const moreList = resultsEl.querySelector('.more-results-list');
     if (moreToggle && moreList) {
       moreToggle.addEventListener('click', () => {
         moreToggle.classList.toggle('open');
@@ -1000,56 +947,25 @@
       });
     }
 
-    // 가입하러 가기 이벤트
+    // 가입하러 가기 (통신사별 URL)
     function handlePlanClick(planName) {
-      alert(`'${planName}' 요금제로 가입하시려면 헬로모바일 사이트에서 검색해주세요.`);
-      window.open('https://direct.lghellovision.net/rate/rateViewUsim.do', '_blank');
+      alert("'" + planName + "' 요금제로 가입하려면 " + 통신사 + " 사이트에서 검색해주세요.");
+      window.open(가입URL, '_blank');
     }
-
-    // 1위 카드의 "가입하러 가기" 버튼
-    const planGoBtn = document.querySelector('.plan-go-btn');
-    if (planGoBtn) {
-      planGoBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const card = e.target.closest('.plan-card');
-        if (card) handlePlanClick(card.dataset.planName);
-      });
-    }
-
-    // 2위 이하 한 줄 카드 클릭
-    document.querySelectorAll('.plan-row.clickable').forEach(row => {
-      row.addEventListener('click', () => {
-        handlePlanClick(row.dataset.planName);
-      });
+    const goBtn = resultsEl.querySelector('.plan-go-btn');
+    if (goBtn) goBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handlePlanClick(goBtn.closest('.plan-card').dataset.planName);
+    });
+    resultsEl.querySelectorAll('.plan-row.clickable').forEach(row => {
+      row.addEventListener('click', () => handlePlanClick(row.dataset.planName));
     });
 
-    // 결과 1위 카드로 스크롤
     setTimeout(() => {
-      const topCard = document.getElementById('result-top');
-      if (topCard) topCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const tc = resultsEl.querySelector('.plan-card.top');
+      if (tc) tc.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   }
-
-  // ============================================================
-  // 비교하기 제출
-  // ============================================================
-  const compareForm = document.getElementById('compare-form');
-  compareForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    // 비교하기 누른 후 옵션 영역 숨김 (새로고침 전엔 다시 안 나옴)
-    const advancedSection = document.getElementById('advanced-section');
-    if (advancedSection) advancedSection.style.display = 'none';
-
-    const input = {
-      data: parseFloat(document.getElementById('data').value) || 0,
-      call: parseInt(document.getElementById('call').value, 10) || 0,
-      sms: parseInt(document.getElementById('sms').value, 10) || 0,
-      options: Array.from(document.querySelectorAll('input[name="opt"]:checked')).map(el => el.value)
-    };
-    console.log('[비교하기 입력]', input);
-    renderResults(input);
-  });
 </script>
 
 </body>
